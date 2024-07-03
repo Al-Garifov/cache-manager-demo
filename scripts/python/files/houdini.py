@@ -62,7 +62,7 @@ def get_parms() -> {hou.Parm}:
     for row in hou.fileReferences():
         parm = PathParm(get_setter_parm(row[0]))
         # TODO: create rules for parsed parm and node types with external config file
-        if parm.get_raw_path() == "$HIP" or parm.get_raw_path()[-3:] == ".py":
+        if parm.get_raw_path() == "$HIP" or parm.get_raw_path()[-3:] == ".py" or parm.get_raw_path()[-5:] == ".json":
             continue
         if not parm.is_animated():
             parms.add(parm)
