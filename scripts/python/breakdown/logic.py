@@ -27,7 +27,8 @@ def update_items(dialog: Dialog):
 
 def update_all(dialog: Dialog):
     for row in dialog.table.rows:
-        row.update_version(row.versions[-1], update=False)
+        if row.versions:
+            row.update_version(row.versions[-1], update=False)
     update_items(dialog)
 
 
@@ -115,13 +116,13 @@ class Row():
         path = self._parm.get_full_parm_name()
         version_range = str(self.get_version_range())
         update = UpdateButton()
-        update.clicked.connect(lambda x: self.update_version(self.versions[-1]))
+        update.clicked.connect(lambda x: self.update_version(self.versions[-1]) if self.versions else None)
         delete_elder = DeleteButton()
         delete_elder.clicked.connect(lambda x: self.delete_elder())
         delete_unused = DeleteButton()
         delete_unused.clicked.connect(lambda x: self.delete_unused())
         broken = not os.path.isfile(self._parm.get_expanded_path())
-        outdated = self.versions[-1] != self.version
+        outdated = not self.versions or self.versions[-1] != self.version
         if broken:
             # FIXME: color changing does not work. We need to be able to show user that path is broken (red) and
             #        what assets could be updated (yellow)
