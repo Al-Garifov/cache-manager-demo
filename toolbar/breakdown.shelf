@@ -10,7 +10,7 @@
   </toolshelf>
 
   <tool name="run" label="Run" icon="SHELF_parent">
-    <script scriptType="python"><![CDATA[import run
-run.main()]]></script>
+    <script scriptType="python"><![CDATA[import main
+main.main()]]></script>
   </tool>
 </shelfDocument>
