@@ -6,19 +6,18 @@ from PySide2.QtWidgets import QSpinBox
 from ui.interface import Dialog
 import hou
 
-from files.templates import TemplateWrapper
+from config.templates import TemplateWrapper
 from files.houdini import get_parms
 from files.houdini import PathParm
 from ui.interface import UpdateButton, DeleteButton
 
+from config.templates import get_generic_template
+
 
 def update_items(dialog: Dialog):
-    # FIXME: root logic should be introduced in real life tool
     # FIXME: files outside of $JOB are not supported in this version
     #        they will raise error of missmatch with template
-    ROOT = hou.expandString("$JOB")
-    # TODO: create config file with templates and change logic
-    template = TemplateWrapper("general", ROOT + "/{step}/{asset}/v{version}/{asset_basename}")
+    template = get_generic_template()
     parms = get_parms()
     rows = []
     for i, parm in enumerate(parms):
