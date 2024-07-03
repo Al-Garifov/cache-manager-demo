@@ -121,7 +121,7 @@ class Row:
         version = int(self._fields["version"])
         version_widget = QtWidgets.QSpinBox()
         version_widget.setValue(version)
-        version_widget.valueChanged[int].connect(lambda x: self.update_version(x))
+        version_widget.valueChanged.connect(self.update_version)
         path = self._parm.get_full_parm_name()
         version_range = self.get_version_range()
         update = interface.UpdateButton()
@@ -141,7 +141,8 @@ class Row:
             name = f"❌{name}❌"
         elif outdated:
             name = f"⏱{name}⏱"
-        return [name, path, version_widget, version_range, update, delete_elder_btn, delete_unused_btn]
+        return [name, path, version_widget, version_range,
+                update, delete_elder_btn, delete_unused_btn]
 
     def update_version(self, new_version: int, update: bool = True):
         """Update item's version to last known."""

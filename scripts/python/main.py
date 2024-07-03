@@ -3,7 +3,7 @@
 import sys
 import os
 
-"""NB! This trick needed for 3d party libraries to work."""
+# NB! This trick needed for 3d party libraries to work.
 path = os.path.join(os.path.dirname(__file__), "site-packages")
 sys.path.insert(0, path)
 
