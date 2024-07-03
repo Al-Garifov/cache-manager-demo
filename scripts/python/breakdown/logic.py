@@ -14,7 +14,8 @@ from ui.interface import UpdateButton, DeleteButton
 
 def update_items(dialog: Dialog):
     # FIXME: root logic should be introduced in real life tool
-    #        files outside of $JOB is not supported in this version
+    # FIXME: files outside of $JOB are not supported in this version
+    #        they will raise error of missmatch with template
     ROOT = hou.expandString("$JOB")
     # TODO: create config file with templates and change logic
     template = TemplateWrapper("general", ROOT + "/{step}/{asset}/v{version}/{asset_basename}")
@@ -27,7 +28,6 @@ def update_items(dialog: Dialog):
 
 def update_all(dialog: Dialog):
     for row in dialog.table.rows:
-        # FIXME: accessing private field
         row.update_version(row.versions[-1], update=False)
     update_items(dialog)
 
@@ -70,7 +70,6 @@ def delete(to_delete: [str]):
         return
     for path in to_delete_exists:
         print(f"Deleting {path}...")
-        # FIXME: commented for testing purposes
         os.remove(path)
 
 
@@ -91,7 +90,6 @@ class Row():
         self._template = template
         full_path = self._parm.get_expanded_path()
         self._fields = self._template.parse(full_path)
-        # FIXME: version field is now hardcoded, introduce this logic to TemplateWrapper
         self.version = int(self._fields["version"])
 
         full_path = self._parm.get_expanded_path()

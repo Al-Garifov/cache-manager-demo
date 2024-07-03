@@ -7,7 +7,6 @@ path = os.path.join(os.path.dirname(__file__), "site-packages")
 sys.path.insert(0, path)
 
 from breakdown.logic import get_prepared_dialog
-import hou
 
 # FIXME: known bug: sometimes item in table can dissapear when swapping one wrong version to another
 #        UPD: when /obj/testSphere/testSphere/file is version 5 and /obj/testBox/testBox/file too

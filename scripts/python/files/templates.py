@@ -12,6 +12,10 @@ class TemplateWrapper:
     def __init__(self, name: str, path: str):
         path = path.replace("\\", "/")
         self._template = Template(name, path)
+        fields = self._template.keys()
+        # FIXME: existance of version field is now hardcoded
+        if "version" not in fields:
+            raise ValueError("Template must contain 'version' field.")
 
     def format(self, fields: dict) -> str:
         if "version" in fields:
