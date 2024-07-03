@@ -69,7 +69,14 @@ def delete(to_delete: [str]):
         return
     for path in to_delete_exists:
         print(f"Deleting {path}...")
-        os.remove(path)
+        try:
+            os.remove(path)
+        except PermissionError:
+            hou.ui.displayMessage(f"Cannot delete file {path}!\nIt might be:\n"
+                                  f"Houdini doesn't let it go -> restart Houdini\n"
+                                  f"It is opened somewhere else -> close it\n"
+                                  f"You don't have permissions to do it -> contact IT dep.",
+                                  title="Sorry!", severity=hou.severityType.Error)
 
 
 def get_prepared_dialog() -> Dialog:
