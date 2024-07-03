@@ -59,7 +59,14 @@ def get_setter_parm(parm: hou.Parm) -> hou.Parm:
 def get_parms() -> {hou.Parm}:
     """Referencing parms and expressions will be skipped."""
     parms = set()
-    for row in hou.fileReferences():
+    # FIXME: remove this workaround once major bug described in main.py fixed
+    #        you can comment hscript lines to see the bug
+    # FIXME: workaround should be tested on huge scenes and changing to cooking type "Manual" may be considered
+    #        since opchange might recook the whole scene
+    hou.hscript("opchange '$OS' '$OS1'")
+    references = hou.fileReferences()
+    hou.hscript("opchange '$OS1' '$OS'")
+    for row in references:
         parm = PathParm(get_setter_parm(row[0]))
         # TODO: create rules for parsed parm and node types with external config file
         if parm.get_raw_path() == "$HIP" or parm.get_raw_path()[-3:] == ".py" or parm.get_raw_path()[-5:] == ".json":

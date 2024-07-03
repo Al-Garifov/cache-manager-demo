@@ -21,6 +21,13 @@ from breakdown.logic import get_prepared_dialog
 #       hou.parm("/obj/geo2/file2/file") contains path $JOB/$OS.bgeo.sc
 #       ONLY ONE of them will be returned with no respect these are different paths after hou.expandString()
 #       This is one more reason not to use $OS in production.
+#
+# FIXME: Update
+#       There is a workaround for this bug:
+#       1. change $OS to smth else with "opchange '$OS' '$OS1'"
+#       2. perform hou.fileReferences()
+#       3.change back with "opchange '$OS1' '$OS'"
+#       Seems like the bug related only to $OS. With other variables, for example $F bug does not appear.
 
 def main():
     dialog = get_prepared_dialog()
