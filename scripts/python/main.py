@@ -5,7 +5,7 @@ import os
 path = os.path.join(os.path.dirname(__file__), "site-packages")
 sys.path.insert(0, path)
 
-from breakdown.logic import get_prepared_dialog
+from breakdown import logic
 
 
 # FIXME: known bug: sometimes item in table can dissapear when swapping one wrong version to another
@@ -30,5 +30,5 @@ from breakdown.logic import get_prepared_dialog
 #       Seems like the bug related only to $OS. With other variables, for example $F bug does not appear.
 
 def main():
-    dialog = get_prepared_dialog()
+    dialog = logic.get_prepared_dialog()
     dialog.show()

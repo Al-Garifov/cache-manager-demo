@@ -3,36 +3,33 @@ import os
 import re
 
 from PySide2.QtWidgets import QSpinBox
-from ui.interface import Dialog
 import hou
 
-from config.templates import TemplateWrapper
-from files.houdini import get_parms
-from files.houdini import PathParm
-from ui.interface import UpdateButton, DeleteButton
-
-from config.templates import get_generic_template
+from ui import interface
+from config import templates
+from config import wrappers
+from files import houdini
 
 
-def update_items(dialog: Dialog):
+def update_items(dialog: interface.Dialog):
     # FIXME: files outside of $JOB are not supported in this version
     #        they will raise error of missmatch with template
-    template = get_generic_template()
-    parms = get_parms()
+    template = templates.get_generic_template()
+    parms = houdini.get_parms()
     rows = []
     for i, parm in enumerate(parms):
         rows.append(Row(dialog, parm, template))
     dialog.table.update_items(rows)
 
 
-def update_all(dialog: Dialog):
+def update_all(dialog: interface.Dialog):
     for row in dialog.table.rows:
         if row.versions:
             row.update_version(row.versions[-1], update=False)
     update_items(dialog)
 
 
-def delete_elder(dialog: Dialog):
+def delete_elder(dialog: interface.Dialog):
     to_save_set = set()
     to_delete_set = set()
     for row in dialog.table.rows:
@@ -44,7 +41,7 @@ def delete_elder(dialog: Dialog):
     update_items(dialog)
 
 
-def delete_unused(dialog: Dialog):
+def delete_unused(dialog: interface.Dialog):
     to_save_set = set()
     to_delete_set = set()
     for row in dialog.table.rows:
@@ -80,8 +77,8 @@ def delete(to_delete: [str]):
                                   title="Sorry!", severity=hou.severityType.Error)
 
 
-def get_prepared_dialog() -> Dialog:
-    dialog = Dialog(hou.qt.mainWindow())
+def get_prepared_dialog() -> interface.Dialog:
+    dialog = interface.Dialog(hou.qt.mainWindow())
     dialog.update_all.clicked.connect(lambda x: update_all(dialog))
     dialog.delete_elder.clicked.connect(lambda x: delete_elder(dialog))
     dialog.delete_unused.clicked.connect(lambda x: delete_unused(dialog))
@@ -90,7 +87,7 @@ def get_prepared_dialog() -> Dialog:
 
 
 class Row():
-    def __init__(self, dialog: "Dialog", parm: PathParm, template: TemplateWrapper):
+    def __init__(self, dialog: "interface.Dialog", parm: houdini.PathParm, template: wrappers.TemplateWrapper):
         super().__init__()
         self._dialog = dialog
         self._parm = parm
@@ -107,7 +104,7 @@ class Row():
             versions.append(int(self._template.parse(version)["version"]))
         self.versions = sorted(versions)
 
-    def to_widgets(self):
+    def to_widgets(self) -> []:
         name = f'{self._fields["step"]}: {self._fields["asset"]}'
         version = int(self._fields["version"])
         version_widget = QSpinBox()
@@ -115,11 +112,11 @@ class Row():
         version_widget.valueChanged[int].connect(lambda x: self.update_version(x))
         path = self._parm.get_full_parm_name()
         version_range = str(self.get_version_range())
-        update = UpdateButton()
+        update = interface.UpdateButton()
         update.clicked.connect(lambda x: self.update_version(self.versions[-1]) if self.versions else None)
-        delete_elder = DeleteButton()
+        delete_elder = interface.DeleteButton()
         delete_elder.clicked.connect(lambda x: self.delete_elder())
-        delete_unused = DeleteButton()
+        delete_unused = interface.DeleteButton()
         delete_unused.clicked.connect(lambda x: self.delete_unused())
         broken = not os.path.isfile(self._parm.get_expanded_path())
         outdated = not self.versions or self.versions[-1] != self.version
@@ -132,24 +129,24 @@ class Row():
             name = f"⏱{name}⏱"
         return [name, path, version_widget, version_range, update, delete_elder, delete_unused]
 
-    def update_version(self, new_version, update=True):
+    def update_version(self, new_version: int, update: bool = True):
         self._fields["version"] = new_version
         new_path = self._template.format(self._fields)
         self._parm.set_path(new_path)
         if update:
             update_items(self._dialog)
 
-    def get_version_range(self):
+    def get_version_range(self) -> str:
         # TODO: create more beautiful and compact formatting for versions, such as 1-6, 8, 10-12
         return str(self.versions)[1:-1]
 
-    def delete_elder(self, update=True):
+    def delete_elder(self, update: bool = True):
         to_delete = self.get_elders()[1]
         delete(to_delete)
         if update:
             update_items(self._dialog)
 
-    def delete_unused(self, update=True):
+    def delete_unused(self, update: bool = True):
         to_delete = self.get_unused()[1]
         delete(to_delete)
         if update:

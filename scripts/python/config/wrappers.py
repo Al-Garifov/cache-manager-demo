@@ -1,4 +1,4 @@
-from lucidity import Template
+import lucidity
 
 
 class TemplateWrapper:
@@ -11,7 +11,7 @@ class TemplateWrapper:
 
     def __init__(self, name: str, path: str):
         path = path.replace("\\", "/")
-        self._template = Template(name, path)
+        self._template = lucidity.Template(name, path)
         fields = self._template.keys()
         # FIXME: existance of version field is now hardcoded
         if "version" not in fields:
