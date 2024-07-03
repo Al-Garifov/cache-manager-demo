@@ -10,3 +10,6 @@ Inside of repo root: ```pytest -v -s```
 
 ## Known issues
 Could be found via FIXME and TODO tags in the sources.
+
+# Warning!
+Critical bug related to Houdini API described in `scripts/python/main.py`!
