@@ -8,6 +8,8 @@ Relaunch Houdini and look for a shelf called **"Breakdown"**.
 ## Test
 Inside of repo root: ```pytest -v -s```
 
+Check code style quality with ```pylint ./scripts/python/```
+
 ## Known issues
 Could be found via FIXME and TODO tags in the sources.
 
