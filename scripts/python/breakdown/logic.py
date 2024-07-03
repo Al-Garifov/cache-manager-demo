@@ -1,9 +1,10 @@
+"""Logic module which connects ui, config and files modules."""
 import glob
 import os
 import re
 
-from PySide2.QtWidgets import QSpinBox
-import hou
+from PySide2 import QtWidgets
+import hou  # pylint: disable=import-error
 
 from ui import interface
 from config import templates
@@ -12,17 +13,19 @@ from files import houdini
 
 
 def update_items(dialog: interface.Dialog):
+    """Update items in BreakdownTable by reparsing the scene."""
     # FIXME: files outside of $JOB are not supported in this version
     #        they will raise error of missmatch with template
     template = templates.get_generic_template()
     parms = houdini.get_parms()
     rows = []
-    for i, parm in enumerate(parms):
+    for parm in parms:
         rows.append(Row(dialog, parm, template))
     dialog.table.update_items(rows)
 
 
 def update_all(dialog: interface.Dialog):
+    """Update all items to the last version found."""
     for row in dialog.table.rows:
         if row.versions:
             row.update_version(row.versions[-1], update=False)
@@ -30,6 +33,7 @@ def update_all(dialog: interface.Dialog):
 
 
 def delete_elder(dialog: interface.Dialog):
+    """Delete files with versions elder than used in scene."""
     to_save_set = set()
     to_delete_set = set()
     for row in dialog.table.rows:
@@ -42,6 +46,7 @@ def delete_elder(dialog: interface.Dialog):
 
 
 def delete_unused(dialog: interface.Dialog):
+    """Delete files with versions not used in scene."""
     to_save_set = set()
     to_delete_set = set()
     for row in dialog.table.rows:
@@ -54,6 +59,7 @@ def delete_unused(dialog: interface.Dialog):
 
 
 def delete(to_delete: [str]):
+    """Delete files with after checking of their existance."""
     message = "These files are going to be deleted:\n"
     to_delete_exists = []
     for file in to_delete:
@@ -78,6 +84,7 @@ def delete(to_delete: [str]):
 
 
 def get_prepared_dialog() -> interface.Dialog:
+    """Connect Dialog from interface module with logic and data from other modules."""
     dialog = interface.Dialog(hou.qt.mainWindow())
     dialog.update_all.clicked.connect(lambda x: update_all(dialog))
     dialog.delete_elder.clicked.connect(lambda x: delete_elder(dialog))
@@ -86,8 +93,12 @@ def get_prepared_dialog() -> interface.Dialog:
     return dialog
 
 
-class Row():
-    def __init__(self, dialog: "interface.Dialog", parm: houdini.PathParm, template: wrappers.TemplateWrapper):
+class Row:
+    """Class that connects houdini asset with interface and logic."""
+
+    def __init__(self, dialog: "interface.Dialog",
+                 parm: houdini.PathParm,
+                 template: wrappers.TemplateWrapper):
         super().__init__()
         self._dialog = dialog
         self._parm = parm
@@ -105,31 +116,35 @@ class Row():
         self.versions = sorted(versions)
 
     def to_widgets(self) -> []:
+        """Render class to strings and widgets understandable by interface module."""
         name = f'{self._fields["step"]}: {self._fields["asset"]}'
         version = int(self._fields["version"])
-        version_widget = QSpinBox()
+        version_widget = QtWidgets.QSpinBox()
         version_widget.setValue(version)
         version_widget.valueChanged[int].connect(lambda x: self.update_version(x))
         path = self._parm.get_full_parm_name()
-        version_range = str(self.get_version_range())
+        version_range = self.get_version_range()
         update = interface.UpdateButton()
-        update.clicked.connect(lambda x: self.update_version(self.versions[-1]) if self.versions else None)
-        delete_elder = interface.DeleteButton()
-        delete_elder.clicked.connect(lambda x: self.delete_elder())
-        delete_unused = interface.DeleteButton()
-        delete_unused.clicked.connect(lambda x: self.delete_unused())
+        update.clicked.connect(
+            lambda x: self.update_version(self.versions[-1]) if self.versions else None)
+        delete_elder_btn = interface.DeleteButton()
+        delete_elder_btn.clicked.connect(lambda x: self.delete_elder())
+        delete_unused_btn = interface.DeleteButton()
+        delete_unused_btn.clicked.connect(lambda x: self.delete_unused())
         broken = not os.path.isfile(self._parm.get_expanded_path())
         outdated = not self.versions or self.versions[-1] != self.version
         if broken:
-            # FIXME: color changing does not work. We need to be able to show user that path is broken (red) and
+            # FIXME: color changing does not work.
+            #        We need to be able to show user that path is broken (red) and
             #        what assets could be updated (yellow)
             #        Workaround with symbols is done.
             name = f"❌{name}❌"
         elif outdated:
             name = f"⏱{name}⏱"
-        return [name, path, version_widget, version_range, update, delete_elder, delete_unused]
+        return [name, path, version_widget, version_range, update, delete_elder_btn, delete_unused_btn]
 
     def update_version(self, new_version: int, update: bool = True):
+        """Update item's version to last known."""
         self._fields["version"] = new_version
         new_path = self._template.format(self._fields)
         self._parm.set_path(new_path)
@@ -137,16 +152,19 @@ class Row():
             update_items(self._dialog)
 
     def get_version_range(self) -> str:
+        """Just getter method that converts list[int] field to str."""
         # TODO: create more beautiful and compact formatting for versions, such as 1-6, 8, 10-12
         return str(self.versions)[1:-1]
 
     def delete_elder(self, update: bool = True):
+        """For all assets: delete files with versions elder than used in scene."""
         to_delete = self.get_elders()[1]
         delete(to_delete)
         if update:
             update_items(self._dialog)
 
     def delete_unused(self, update: bool = True):
+        """For all assets: delete files with versions not used in scene."""
         to_delete = self.get_unused()[1]
         delete(to_delete)
         if update:

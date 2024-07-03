@@ -1,18 +1,19 @@
 """Main UI widget.
 """
-from PySide2.QtWidgets import QTableWidget, QHeaderView, QDialog, QTableWidgetItem, \
-    QStyle, QToolButton, QPushButton, QHBoxLayout, QVBoxLayout
-import hou
+from PySide2 import QtWidgets
+import hou  # pylint: disable=import-error
 
 
-class BreakdownTable(QTableWidget):
+class BreakdownTable(QtWidgets.QTableWidget):
+    """Modified QTableWidget with respect to assignment spesifics."""
     def __init__(self, parent=None):
-        super(BreakdownTable, self).__init__(parent)
+        super().__init__(parent)
         self.rows = []
         self.resize(1100, 500)
         self.setColumnCount(7)
-        self.setHorizontalHeaderLabels(
-            ["Asset", "Node/Parm", "Version", "Versions Range", "Update to last", "Delete elder", "Delete unused"])
+        self.setHorizontalHeaderLabels(["Asset", "Node/Parm", "Version",
+                                        "Versions Range", "Update to last",
+                                        "Delete elder", "Delete unused"])
         self.setColumnWidth(0, 250)
         self.setColumnWidth(1, 500)
         self.setColumnWidth(2, 50)
@@ -22,46 +23,50 @@ class BreakdownTable(QTableWidget):
         self.setColumnWidth(6, 100)
         self.verticalHeader().hide()
         self.horizontalHeader().setStretchLastSection(False)
-        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
-    def update_items(self, rows):
+    def update_items(self, rows: list):
+        """Rerender items in table with new data."""
         self.rows = rows
         self.setRowCount(len(rows))
         for row, item in enumerate(rows):
             for column, value in enumerate(item.to_widgets()):
                 if isinstance(value, str):
-                    table_item = QTableWidgetItem(value)
+                    table_item = QtWidgets.QTableWidgetItem(value)
                     self.setItem(row, column, table_item)
                 else:
                     self.setCellWidget(row, column, value)
 
 
-class DeleteButton(QToolButton):
+class DeleteButton(QtWidgets.QToolButton):
+    """QToolButton with fancy delete icon."""
     def __init__(self, parent=None):
-        super(DeleteButton, self).__init__(parent)
-        pixmapi = getattr(QStyle, "SP_MessageBoxCritical")
+        super().__init__(parent)
+        pixmapi = getattr(QtWidgets.QStyle, "SP_MessageBoxCritical")
         self.setIcon(hou.qt.mainWindow().style().standardIcon(pixmapi))
 
 
-class UpdateButton(QToolButton):
+class UpdateButton(QtWidgets.QToolButton):
+    """QToolButton with fancy update icon."""
     def __init__(self, parent=None):
-        super(UpdateButton, self).__init__(parent)
-        pixmapi = getattr(QStyle, "SP_ArrowUp")
+        super().__init__(parent)
+        pixmapi = getattr(QtWidgets.QStyle, "SP_ArrowUp")
         self.setIcon(hou.qt.mainWindow().style().standardIcon(pixmapi))
 
 
-class Dialog(QDialog):
+class Dialog(QtWidgets.QDialog):
+    """Core dialog with all interface."""
     def __init__(self, parent=None):
-        super(Dialog, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowTitle("Breakdown")
         self.table = BreakdownTable()
-        ver_layout = QVBoxLayout()
-        hor_layout = QHBoxLayout()
+        ver_layout = QtWidgets.QVBoxLayout()
+        hor_layout = QtWidgets.QHBoxLayout()
         ver_layout.addWidget(self.table)
         ver_layout.addLayout(hor_layout)
-        self.update_all = QPushButton("Update All")
-        self.delete_elder = QPushButton("Delete elder")
-        self.delete_unused = QPushButton("Delete unused")
+        self.update_all = QtWidgets.QPushButton("Update All")
+        self.delete_elder = QtWidgets.QPushButton("Delete elder")
+        self.delete_unused = QtWidgets.QPushButton("Delete unused")
         hor_layout.addWidget(self.update_all)
         hor_layout.addWidget(self.delete_elder)
         hor_layout.addWidget(self.delete_unused)
