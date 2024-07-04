@@ -2,6 +2,7 @@
 import glob
 import os
 import re
+from typing import Iterable
 
 from PySide2 import QtWidgets
 import hou  # pylint: disable=import-error
@@ -13,7 +14,11 @@ from files import houdini
 
 
 def update_items(dialog: interface.Dialog):
-    """Update items in BreakdownTable by reparsing the scene."""
+    """Update items in BreakdownTable of 'dialog' by reparsing the scene.
+
+    Args:
+        dialog (interface.Dialog): parent Dialog of BreakdownTable to set values in
+    """
     # FIXME: files outside of $JOB are not supported in this version
     #        they will raise error of missmatch with template
     template = templates.get_generic_template()
@@ -25,7 +30,11 @@ def update_items(dialog: interface.Dialog):
 
 
 def update_all(dialog: interface.Dialog):
-    """Update all items to the last version found."""
+    """Update all items to the last version found.
+
+    Args:
+        dialog (interface.Dialog): parent Dialog of BreakdownTable to set values in
+    """
     for row in dialog.table.rows:
         if row.versions:
             row.update_version(row.versions[-1], update=False)
@@ -33,7 +42,11 @@ def update_all(dialog: interface.Dialog):
 
 
 def delete_elder(dialog: interface.Dialog):
-    """Delete files with versions elder than used in scene."""
+    """Delete files with versions elder than used in scene.
+
+    Args:
+        dialog (interface.Dialog): parent Dialog of BreakdownTable to get values from
+    """
     to_save_set = set()
     to_delete_set = set()
     for row in dialog.table.rows:
@@ -46,7 +59,11 @@ def delete_elder(dialog: interface.Dialog):
 
 
 def delete_unused(dialog: interface.Dialog):
-    """Delete files with versions not used in scene."""
+    """Delete files with versions not used in scene.
+
+    Args:
+        dialog (interface.Dialog): parent Dialog of BreakdownTable to get values from
+    """
     to_save_set = set()
     to_delete_set = set()
     for row in dialog.table.rows:
@@ -58,8 +75,12 @@ def delete_unused(dialog: interface.Dialog):
     update_items(dialog)
 
 
-def delete(to_delete: [str]):
-    """Delete files with after checking of their existance."""
+def delete(to_delete: Iterable[str]):
+    """Delete files with after checking of their existance.
+
+    Args:
+        to_delete Iterable[str]: List of paths to delete
+    """
     message = "These files are going to be deleted:\n"
     to_delete_exists = []
     for file in to_delete:
@@ -84,7 +105,13 @@ def delete(to_delete: [str]):
 
 
 def get_prepared_dialog() -> interface.Dialog:
-    """Connect Dialog from interface module with logic and data from other modules."""
+    """Connect Dialog from interface module with logic and data from other modules.
+
+    Args:
+
+    Returns:
+        interface.Dialog instance with logic functions and methods connected to signals.
+    """
     dialog = interface.Dialog(hou.qt.mainWindow())
     dialog.update_all.clicked.connect(lambda x: update_all(dialog))
     dialog.delete_elder.clicked.connect(lambda x: delete_elder(dialog))
@@ -96,9 +123,11 @@ def get_prepared_dialog() -> interface.Dialog:
 class Row:
     """Class that connects houdini asset with interface and logic."""
 
-    def __init__(self, dialog: "interface.Dialog",
-                 parm: houdini.PathParm,
-                 template: wrappers.TemplateWrapper):
+    def __init__(
+            self,
+            dialog: "interface.Dialog",
+            parm: houdini.PathParm,
+            template: wrappers.TemplateWrapper):
         super().__init__()
         self._dialog = dialog
         self._parm = parm
@@ -115,8 +144,14 @@ class Row:
             versions.append(int(self._template.parse(version)["version"]))
         self.versions = sorted(versions)
 
-    def to_widgets(self) -> []:
-        """Render class to strings and widgets understandable by interface module."""
+    def to_widgets(self) -> list:
+        """Render class to strings and widgets understandable by interface module.
+
+        Args:
+
+        Returns:
+            List of str and QtWidgets for method interface.BreakdownTable.update_items
+        """
         name = f'{self._fields["step"]}: {self._fields["asset"]}'
         version = int(self._fields["version"])
         version_widget = QtWidgets.QSpinBox()
@@ -141,11 +176,26 @@ class Row:
             name = f"❌{name}❌"
         elif outdated:
             name = f"⏱{name}⏱"
-        return [name, path, version_widget, version_range,
-                update, delete_elder_btn, delete_unused_btn]
+        result = [
+            name,
+            path,
+            version_widget,
+            version_range,
+            update,
+            delete_elder_btn,
+            delete_unused_btn
+        ]
+        return result
 
     def update_version(self, new_version: int, update: bool = True):
-        """Update item's version to last known."""
+        """Update item's version to last known.
+
+        Args:
+            new_version (int): New version to set for the asset.
+            update (bool): Update the interface after setting new version.
+        Returns:
+
+        """
         self._fields["version"] = new_version
         new_path = self._template.format(self._fields)
         self._parm.set_path(new_path)
@@ -153,26 +203,50 @@ class Row:
             update_items(self._dialog)
 
     def get_version_range(self) -> str:
-        """Just getter method that converts list[int] field to str."""
+        """Just getter method that converts list[int] field to str.
+
+        Args:
+
+        Returns:
+            String with all versions that exist for the asset.
+        """
         # TODO: create more beautiful and compact formatting for versions, such as 1-6, 8, 10-12
         return str(self.versions)[1:-1]
 
     def delete_elder(self, update: bool = True):
-        """For all assets: delete files with versions elder than used in scene."""
+        """For all assets: delete files with versions elder than used in scene.
+
+        Args:
+            update (bool): Update the interface after deletion.
+        Returns:
+
+        """
         to_delete = self.get_elders()[1]
         delete(to_delete)
         if update:
             update_items(self._dialog)
 
     def delete_unused(self, update: bool = True):
-        """For all assets: delete files with versions not used in scene."""
+        """For all assets: delete files with versions not used in scene.
+
+        Args:
+            update (bool): Update the interface after deletion.
+        Returns:
+
+        """
         to_delete = self.get_unused()[1]
         delete(to_delete)
         if update:
             update_items(self._dialog)
 
-    def get_elders(self) -> (str, [str]):
-        """returns to_save, [to_delete]"""
+    def get_elders(self) -> (str, list[str]):
+        """Get elder versions of the asset than used by this parm.
+
+        Args:
+
+        Returns:
+            Tuple of (current_version_path, [paths_to_elder_versions])
+        """
         fields = self._fields.copy()
         to_delete = []
         for version in self.versions:
@@ -182,8 +256,14 @@ class Row:
                 to_delete.append(path)
         return self._parm.get_expanded_path(), to_delete
 
-    def get_unused(self) -> (str, [str]):
-        """returns to_save, [to_delete]"""
+    def get_unused(self) -> (str, list[str]):
+        """Get not used by this parm versions of the asset.
+
+        Args:
+
+        Returns:
+            Tuple of (current_version_path, [paths_to_unused_versions])
+        """
         fields = self._fields.copy()
         to_delete = []
         for version in self.versions:

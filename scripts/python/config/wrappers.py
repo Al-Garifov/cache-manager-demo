@@ -19,11 +19,23 @@ class TemplateWrapper:
             raise ValueError("Template must contain 'version' field.")
 
     def format(self, fields: dict) -> str:
-        """Apply fields to template to get rendered str."""
+        """Apply fields to template to get rendered str.
+
+        Args:
+            fields (dict): pairs of key/value for formatting the pattern
+        Returns:
+            Pattern string with all keys replaces by values.
+        """
         if "version" in fields:
             fields["version"] = str(fields["version"]).zfill(3)
         return self._template.format(fields)
 
     def parse(self, path: str) -> dict:
-        """Extract fields from str with respect to template."""
+        """Extract fields from str with respect to template.
+
+        Args:
+            path (str): pattern string with all keys replaces by values.
+        Returns:
+            Pairs of key/value used for formatting the pattern
+        """
         return self._template.parse(path)

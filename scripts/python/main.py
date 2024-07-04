@@ -1,4 +1,9 @@
-"""Starting point of the tool."""
+"""Starting point of the cache manager tool.
+
+It parses Houdini scene, checks is imported pathes align with templates and
+creates a nice UI to interact with versions clearier and with some automations
+such as "Update to last version", "Delete Elder versions", "Delete Unused versions"
+"""
 
 import sys
 import os

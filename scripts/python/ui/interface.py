@@ -6,14 +6,23 @@ import hou  # pylint: disable=import-error
 
 class BreakdownTable(QtWidgets.QTableWidget):
     """Modified QTableWidget with respect to assignment spesifics."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.rows = []
         self.resize(1100, 500)
         self.setColumnCount(7)
-        self.setHorizontalHeaderLabels(["Asset", "Node/Parm", "Version",
-                                        "Versions Range", "Update to last",
-                                        "Delete elder", "Delete unused"])
+        self.setHorizontalHeaderLabels(
+            [
+                "Asset",
+                "Node/Parm",
+                "Version",
+                "Versions Range",
+                "Update to last",
+                "Delete elder",
+                "Delete unused"
+            ]
+        )
         self.setColumnWidth(0, 250)
         self.setColumnWidth(1, 500)
         self.setColumnWidth(2, 50)
@@ -40,6 +49,7 @@ class BreakdownTable(QtWidgets.QTableWidget):
 
 class DeleteButton(QtWidgets.QToolButton):
     """QToolButton with fancy delete icon."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         pixmapi = getattr(QtWidgets.QStyle, "SP_MessageBoxCritical")
@@ -48,6 +58,7 @@ class DeleteButton(QtWidgets.QToolButton):
 
 class UpdateButton(QtWidgets.QToolButton):
     """QToolButton with fancy update icon."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         pixmapi = getattr(QtWidgets.QStyle, "SP_ArrowUp")
@@ -56,6 +67,7 @@ class UpdateButton(QtWidgets.QToolButton):
 
 class Dialog(QtWidgets.QDialog):
     """Core dialog with all interface."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Breakdown")

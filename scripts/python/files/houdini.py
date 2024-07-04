@@ -5,6 +5,7 @@ import hou  # pylint: disable=import-error
 
 class PathParm:
     """Wrapper for hou.Parm."""
+
     def __init__(self, parm: hou.Parm):
         self._update(parm)
 
@@ -15,6 +16,13 @@ class PathParm:
         return self._parm.path() == other._parm.path()
 
     def _update(self, parm: hou.Parm):
+        """Updates the object with new data from hou API.
+
+        Args:
+            parm (hou.Parm): source hou.Parm to get values from
+        Returns:
+
+        """
         # FIXME: difference between unexpandedString() and rawValue()?
         self._raw_path = parm.unexpandedString()
         self._expanded_path = parm.eval()
@@ -47,7 +55,18 @@ class PathParm:
                  with_job: bool = True,
                  with_hip: bool = True,
                  with_os: bool = True):
-        """$JOB will be used if possible. If not possible then $HIP."""
+        """Sets related hou.Parm value to given path.
+
+        $JOB will be used if possible. If not possible then $HIP.
+
+        Args:
+            path (str): expanded path to set. Some parts of it will be replaced with variables
+            with_job (bool): to swap $JOB value with '$JOB' for more flexible use in Houdini
+            with_hip (bool): to swap $HIP value with '$HIP' for more flexible use in Houdini
+            with_os (bool): to swap $OS value with '$OS' for more flexible use in Houdini
+        Returns:
+
+        """
         # FIXME: using $OS should be discussed with Leads because it can lead to bad scene structure
         job = hou.expandString("$JOB")
         hip = hou.expandString("$HIP")
@@ -63,14 +82,26 @@ class PathParm:
 
 
 def get_setter_parm(parm: hou.Parm) -> hou.Parm:
-    """Find the "setter" parm from which reference chain starts."""
+    """Find the "setter" parm from which reference chain starts.
+
+    Args:
+        parm (hou.Parm): parm to start from
+    Returns:
+        Last parm in reference chain.
+    """
     while parm != parm.getReferencedParm():
         parm = parm.getReferencedParm()
     return parm
 
 
 def get_parms() -> {hou.Parm}:
-    """Referencing parms and expressions will be skipped."""
+    """Referencing parms and expressions will be skipped.
+
+    Args:
+
+    Returns:
+        Set of unique hou.Parms referencing files in Houdini scene.
+    """
     parms = set()
     # FIXME: remove this workaround once major bug described in main.py fixed
     #        you can comment hscript lines to see the bug
